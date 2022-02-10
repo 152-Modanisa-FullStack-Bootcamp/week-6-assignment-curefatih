@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handler: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">bootcamp/handler/wallet.go (84.7%)</option>
+				
+				<option value="file1">bootcamp/repository/wallet.go (100.0%)</option>
+				
+				<option value="file2">bootcamp/service/wallet.go (88.9%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handler
+
+import (
+        "bootcamp/service"
+        "encoding/json"
+        "net/http"
+)
+
+type IWalletHandler interface {
+        GetByUsername(w http.ResponseWriter, r *http.Request)
+        GetAll(w http.ResponseWriter, r *http.Request)
+        Create(w http.ResponseWriter, r *http.Request)
+        Update(w http.ResponseWriter, r *http.Request)
+        HandleFunc(w http.ResponseWriter, r *http.Request)
+}
+
+type WalletHandler struct {
+        walletService service.IWalletService
+}
+
+func NewHandler(walletService service.IWalletService) IWalletHandler <span class="cov8" title="1">{
+        return &amp;WalletHandler{
+                walletService: walletService,
+        }
+}</span>
+
+func (h *WalletHandler) GetByUsername(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+
+        // get path /:username
+        username := r.URL.Path[len("/"):]
+        rawResponse, err := h.walletService.GetByUsername(username)
+        if err != nil </span><span class="cov8" title="1">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        // struct to json
+        <span class="cov8" title="1">response, err := json.Marshal(rawResponse)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        // set json content type
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        // write response
+        w.WriteHeader(http.StatusOK)
+        w.Write(response)</span>
+}
+
+func (h *WalletHandler) GetAll(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        rawResponse, err := h.walletService.GetAll()
+        if err != nil </span><span class="cov8" title="1">{
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+        // struct to json
+        <span class="cov8" title="1">response, err := json.Marshal(rawResponse)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        // set json content type
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        // write response
+        w.WriteHeader(http.StatusOK)
+        w.Write(response)</span>
+}
+
+func (h *WalletHandler) Create(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        username := r.URL.Path[len("/"):]
+        err := h.walletService.Create(username)
+
+        if err != nil </span><span class="cov8" title="1">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        // write response
+        <span class="cov8" title="1">w.WriteHeader(http.StatusCreated)
+        w.Write([]byte("Created"))</span>
+}
+
+func (h *WalletHandler) Update(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        username := r.URL.Path[len("/"):]
+
+        var body struct {
+                Balance float32 `json:"balance"`
+        }
+
+        err := json.NewDecoder(r.Body).Decode(&amp;body)
+        if err != nil </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">err = h.walletService.Update(username, body.Balance)
+        if err != nil </span><span class="cov8" title="1">{
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        // write response
+        <span class="cov8" title="1">w.WriteHeader(http.StatusOK)
+        w.Write([]byte("Updated"))</span>
+}
+
+// wrapper func for request type
+func (h *WalletHandler) HandleFunc(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        // if only /
+        if r.URL.Path == "/" &amp;&amp; r.Method == "GET" </span><span class="cov8" title="1">{
+                h.GetAll(w, r)
+                return
+        }</span>
+
+        <span class="cov8" title="1">switch r.Method </span>{
+        case http.MethodGet:<span class="cov8" title="1">
+                h.GetByUsername(w, r)</span>
+        case http.MethodPut:<span class="cov8" title="1">
+                h.Create(w, r)</span>
+        case http.MethodPost:<span class="cov8" title="1">
+                h.Update(w, r)</span>
+        default:<span class="cov8" title="1">
+                w.WriteHeader(http.StatusMethodNotAllowed)
+                w.Write([]byte("Method not allowed"))</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package repository
+
+import (
+        "bootcamp/model"
+        "errors"
+)
+
+type IWalletRepository interface {
+        GetByUsername(username string) (*model.Wallet, error)
+        GetAll() ([]*model.Wallet, error)
+        Create(username string, amount float32) error
+        Update(username string, amount float32) error
+}
+
+type WalletRepository struct {
+        wallet map[string]float32
+}
+
+func NewWalletRepository() IWalletRepository <span class="cov8" title="1">{
+        return &amp;WalletRepository{
+                wallet: make(map[string]float32),
+        }
+}</span>
+
+func newWalletForTest(wallet map[string]float32) *WalletRepository <span class="cov8" title="1">{
+        return &amp;WalletRepository{
+                wallet: wallet,
+        }
+}</span>
+
+func (w *WalletRepository) GetByUsername(username string) (*model.Wallet, error) <span class="cov8" title="1">{
+        amount, ok := w.wallet[username]
+        if !ok </span><span class="cov8" title="1">{
+                return nil, errors.New("user not found")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;model.Wallet{
+                Username: username,
+                Amount:   amount,
+        }, nil</span>
+}
+
+func (w *WalletRepository) GetAll() ([]*model.Wallet, error) <span class="cov8" title="1">{
+        var wallets []*model.Wallet
+
+        for username, amount := range w.wallet </span><span class="cov8" title="1">{
+                wallets = append(wallets, &amp;model.Wallet{
+                        Username: username,
+                        Amount:   amount,
+                })
+        }</span>
+
+        <span class="cov8" title="1">return wallets, nil</span>
+}
+
+func (w *WalletRepository) Create(username string, amount float32) error <span class="cov8" title="1">{
+        w.wallet[username] = amount
+        return nil
+}</span>
+
+func (w *WalletRepository) Update(username string, amount float32) error <span class="cov8" title="1">{
+        w.wallet[username] = amount
+        return nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package service
+
+import (
+        "bootcamp/model"
+        "bootcamp/repository"
+        "errors"
+)
+
+type IWalletService interface {
+        GetByUsername(username string) (*model.Wallet, error)
+        GetAll() ([]*model.Wallet, error)
+        Create(username string) error
+        Update(username string, amount float32) error
+}
+
+type WalletService struct {
+        WalletRepository     repository.IWalletRepository
+        initialBalanceAmount float32
+        minimumBalanceAmount float32
+}
+
+func NewWalletService(walletRepository repository.IWalletRepository, initialBalanceAmount, minimumBalanceAmount float32) *WalletService <span class="cov8" title="1">{
+        return &amp;WalletService{
+                WalletRepository:     walletRepository,
+                initialBalanceAmount: initialBalanceAmount,
+                minimumBalanceAmount: minimumBalanceAmount,
+        }
+}</span>
+
+func (w *WalletService) GetByUsername(username string) (*model.Wallet, error) <span class="cov8" title="1">{
+        return w.WalletRepository.GetByUsername(username)
+}</span>
+
+func (w *WalletService) GetAll() ([]*model.Wallet, error) <span class="cov8" title="1">{
+        return w.WalletRepository.GetAll()
+}</span>
+
+func (w *WalletService) Create(username string) error <span class="cov8" title="1">{
+        user, err := w.WalletRepository.GetByUsername(username)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if user != nil </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">return w.WalletRepository.Create(username, w.initialBalanceAmount)</span>
+}
+
+func (w *WalletService) Update(username string, balance float32) error <span class="cov8" title="1">{
+        user, err := w.WalletRepository.GetByUsername(username)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if user == nil </span><span class="cov8" title="1">{
+                return errors.New("user not found")
+        }</span>
+
+        <span class="cov8" title="1">newAmount := user.Amount + balance
+        // check if amount is valid
+        if newAmount &lt; w.minimumBalanceAmount </span><span class="cov8" title="1">{
+                return errors.New("amount is not valid")
+        }</span>
+
+        <span class="cov8" title="1">return w.WalletRepository.Update(username, newAmount)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
